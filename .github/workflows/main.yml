@@ -1,23 +1,23 @@
-name: Cloudflared Tunnel VPS
+name: VPS with LocalTunnel
 
 on: [workflow_dispatch]
 
 jobs:
-  run-vps:
+  localtunnel:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Cloudflared
+      - name: Install Node.js & LocalTunnel
         run: |
-          wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
-          chmod +x cloudflared-linux-amd64
-          sudo mv cloudflared-linux-amd64 /usr/local/bin/cloudflared
+          sudo apt update
+          sudo apt install -y nodejs npm
+          sudo npm install -g localtunnel
 
-      - name: Start HTTP Server
+      - name: Run server
         run: |
           nohup python3 -m http.server 8080 &
 
-      - name: Start Cloudflared Tunnel
+      - name: Start tunnel
         run: |
-          nohup cloudflared tunnel --url http://localhost:8080 > cloudflared.log 2>&1 &
-          sleep 10
-          cat cloudflared.log | grep "https://" || echo "Туннель не запущен"
+          nohup lt --port 8080 --subdomain mycustomname > tunnel.log &
+          sleep 5
+          cat tunnel.log
